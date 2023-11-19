@@ -10,10 +10,11 @@ using namespace std;
 
 //Player2 Client
 
-struct P2HP
+struct Shizuka
 {
 	int max_hp = 100
 	int current_hp = max_hp 	
+	int actionstore[5]
 	
 };
 

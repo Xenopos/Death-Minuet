@@ -1,4 +1,4 @@
-# OS-yes
+# Death Minuet
 
 
-Death Minuet game made in using C and Terminal
+Death Minuet is made using C and Terminal
