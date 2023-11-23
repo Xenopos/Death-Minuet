@@ -125,32 +125,25 @@ void on_preparation_phase() {
 if (actionsInputted == 4) {
     printf("All slots are filled.\n");
 
-    // Print the filled slots
     for (int count = 0; count < 4; count++) {
         int actionInput = gameState.Xiyactions[count].actioninput;
         printf("Slot %d: %d ", count + 1, actionInput);
 
-        // Switch-case to interpret user input
         switch (actionInput) {
             case 1:
                 printf("Action: Attack\n");
-                // Add logic for attack
                 break;
             case 2:
                 printf("Action: Heal\n");
-                // Add logic for heal
                 break;
             case 3:
                 printf("Action: Defend\n");
-                // Add logic for defend
                 break;
             case 4:
                 printf("Action: Counter\n");
-                // Add logic for counter
                 break;
             default:
                 printf("Invalid action input.\n");
-                // Handle invalid input
                 break;
         }
     }
