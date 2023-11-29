@@ -32,12 +32,13 @@ typedef struct {
     int isXiyaTurn;          
     int isShizukaDead;      
     int isXiyaDisconnected;  
-    int isPreparationPhase;    
-    int isExecutionPhase;      
+    int isPreparationPhase;  
+    int isExecutionPhase;   
 } XiyaFlags;
 
 void on_execution_phase(GameState gameState)
-{
+{   
+    printf("fuck you ");
     for (int compare = 0; compare < 5; ++compare) {
         int xiyaAction = gameState.Xiyactions[compare].actioninput;
         int shizukaAction = gameState.Shizukaactions[compare].actioninput;
@@ -87,13 +88,14 @@ void on_preparation_phase() {
     GameState gameState;
     int actionsInputted = 0;
     int choosingAction = 0;
+
     while (xiyaFlags.isPreparationPhase) {
-        int hasInvalidactioninput = 0;
+        int hasInvalidActionInput = 0;
 
         for (choosingAction; choosingAction < 4; choosingAction++) {
             printf("Enter desired action for slot %d (enter 0 to clear): ", choosingAction + 1);
             if (scanf("%d", &gameState.Xiyactions[choosingAction].actioninput) != 1) {
-                hasInvalidactioninput = 1;
+                hasInvalidActionInput = 1;
                 printf("Invalid input. Please enter a number.\n");
                 clear_input_buffer();
                 break;
@@ -101,54 +103,73 @@ void on_preparation_phase() {
 
             if (gameState.Xiyactions[choosingAction].actioninput == 0) {
                 printf("Array cleared.\n");
-                hasInvalidactioninput = 1;
+                hasInvalidActionInput = 1;
                 clear_input_buffer();
-                continue;
+                break;
             }
-            //imscared
+
             if (gameState.Xiyactions[choosingAction].actioninput < 1 || gameState.Xiyactions[choosingAction].actioninput > 4) {
-                hasInvalidactioninput = 1;
+                hasInvalidActionInput = 1;
                 printf("Invalid action input. Please enter numbers between 1 and 4 or 0 to clear.\n");
                 clear_input_buffer();
-                continue;
+                choosingAction = -1;
+                break;
             }
 
             actionsInputted++;
         }
 
-        if (hasInvalidactioninput) {
+        if (hasInvalidActionInput) {
             actionsInputted = 0;
             choosingAction = 0;
             continue;
         }
 
-if (actionsInputted == 4) {
-    printf("All slots are filled.\n");
+        if (actionsInputted == 4) {
+            printf("All slots are filled.\n");
 
-    for (int count = 0; count < 4; count++) {
-        int actionInput = gameState.Xiyactions[count].actioninput;
-        printf("Slot %d: %d ", count + 1, actionInput);
+            for (int count = 0; count < 4; count++) {
+                int actionInput = gameState.Xiyactions[count].actioninput;
+                printf("Slot %d: %d ", count + 1, actionInput);
 
-        switch (actionInput) {
-            case 1:
-                printf("Action: Attack\n");
-                break;
-            case 2:
-                printf("Action: Heal\n");
-                break;
-            case 3:
-                printf("Action: Defend\n");
-                break;
-            case 4:
-                printf("Action: Counter\n");
-                break;
-            default:
-                printf("Invalid action input.\n");
-                break;
+                switch (actionInput) {
+                    case 1:
+                        printf("Action: Attack\n");
+                        break;
+                    case 2:
+                        printf("Action: Heal\n");
+                        break;
+                    case 3:
+                        printf("Action: Defend\n");
+                        break;
+                    case 4:
+                        printf("Action: Counter\n");
+                        break;
+                    default:
+                        printf("Invalid action input.\n");
+                        break;
+                }
+            }
+
+            printf("Proceed to Execution Phase? (Enter 1 to proceed, 0 to reset): ");
+            int proceedInput;
+            if (scanf("%d", &proceedInput) == 1) {
+                if (proceedInput == 1) {
+                    xiyaFlags.isExecutionPhase = 1;
+                    break; 
+                } else if (proceedInput == 0) {
+                    actionsInputted = 0;
+                    choosingAction = 0;
+                    clear_input_buffer();
+                } else {
+                    printf("Invalid input. Please enter 1 to proceed or 0 to reset.\n");
+                    clear_input_buffer();
+                }
+            } else {
+                printf("Invalid input. Please enter a number.\n");
+                clear_input_buffer();
+            }
         }
-    }
-}
-        break;
     }
 }
 
@@ -165,16 +186,17 @@ int main(int argc, char const *argv[])
     ShowIntro();
 
     XiyaFlags xiyaFlags;  
-    xiyaFlags.isPreparationPhase = 1; 
-    xiyaFlags.isExecutionPhase = 0;
+    xiyaFlags.isPreparationPhase = 1;  
+
+    while (xiyaFlags.isExecutionPhase == 1)
+    {
+        printf("test");
+    }
+
     if (xiyaFlags.isPreparationPhase == 1) {
         on_preparation_phase();
     }
 
-    if (xiyaFlags.isExecutionPhase == 1) {
-        GameState gameState;
-        on_execution_phase(gameState);
-    }
 
     return 0;
 }
