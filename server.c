@@ -92,6 +92,11 @@ void on_preparation_phase() {
     while (xiyaFlags.isPreparationPhase) {
         int hasInvalidActionInput = 0;
 
+         printf("1 = Attack\n"
+                "2 = Heal\n"
+                "3 = Defend\n"
+                "4 = Counter\n");
+
         for (choosingAction; choosingAction < 4; choosingAction++) {
             printf("Enter desired action for slot %d (enter 0 to clear): ", choosingAction + 1);
             if (scanf("%d", &gameState.Xiyactions[choosingAction].actioninput) != 1) {
