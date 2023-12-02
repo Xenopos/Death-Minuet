@@ -11,8 +11,8 @@ typedef struct {
     char name[20];
     int currentHealth;
     int maxHealth;
-} Player;
-
+} XiyaPlayer;
+    
 typedef struct {
     char actionName[20];
     int actioninput;
@@ -20,8 +20,8 @@ typedef struct {
 } Action;
 
 typedef struct {
-    Player XiyaPlayer;
-    Player ShizukaPlayer;
+    XiyaPlayer XiyaPlayer;
+    XiyaPlayer ShizukaPlayer;
     Action Xiyactions[5];
     Action Shizukaactions[5];
     int choosing;
@@ -36,9 +36,13 @@ typedef struct {
     int isExecutionPhase;   
 } XiyaFlags;
 
+typedef struct{
+    int pprtnswitch;
+    int execswitch;
+} Phaseswitch;
+
 void on_execution_phase(GameState gameState)
 {   
-    printf("fuck you ");
     for (int compare = 0; compare < 5; ++compare) {
         int xiyaAction = gameState.Xiyactions[compare].actioninput;
         int shizukaAction = gameState.Shizukaactions[compare].actioninput;
@@ -86,6 +90,7 @@ void clear_input_buffer() {
 void on_preparation_phase() {
     XiyaFlags xiyaFlags;
     GameState gameState;
+    Phaseswitch ps;
     int actionsInputted = 0;
     int choosingAction = 0;
 
@@ -144,7 +149,7 @@ void on_preparation_phase() {
                         break;
                     case 4:
                         printf("Action: Counter\n");
-                        break;
+                        break;  
                     default:
                         printf("Invalid action input.\n");
                         break;
@@ -156,6 +161,10 @@ void on_preparation_phase() {
             if (scanf("%d", &proceedInput) == 1) {
                 if (proceedInput == 1) {
                     xiyaFlags.isExecutionPhase = 1;
+                    printf("passed");
+                    xiyaFlags.isPreparationPhase = 0;
+                    printf("%d\n", xiyaFlags.isPreparationPhase);
+                        ps.pprtnswitch = 0;
                     break; 
                 } else if (proceedInput == 0) {
                     actionsInputted = 0;
@@ -173,6 +182,21 @@ void on_preparation_phase() {
     }
 }
 
+void print_actions(const GameState *gameState) {
+    printf("Xiya Actions: ");
+    for (int count = 0; count < 4; count++) {
+        int actionInput = gameState->Xiyactions[count].actioninput;
+        printf("%d ", actionInput);
+    }
+
+    printf("\nShizuka Actions: ");
+    for (int count = 0; count < 4; count++) {
+        int actionInput = gameState->Shizukaactions[count].actioninput;
+        printf("%d ", actionInput);
+    }
+
+    printf("\n");
+}
 
 void ShowIntro()
 {
@@ -181,22 +205,29 @@ void ShowIntro()
 }
 
 
-int main(int argc, char const *argv[])
-{
+
+int main(int argc, char const *argv[]) {
     ShowIntro();
+    int GameStartflag = 1;
+    GameState gameState;
+    gameState.Shizukaactions[0].actioninput = 1;
+    gameState.Shizukaactions[1].actioninput = 2;
+    gameState.Shizukaactions[2].actioninput = 3;
+    gameState.Shizukaactions[3].actioninput = 4;
+    Phaseswitch ps;
+    XiyaFlags xiyaFlags;
+    xiyaFlags.isPreparationPhase = 1;
+    ps.pprtnswitch = 1;
 
-    XiyaFlags xiyaFlags;  
-    xiyaFlags.isPreparationPhase = 1;  
-
-    while (xiyaFlags.isExecutionPhase == 1)
-    {
-        printf("test");
+    while (1) {
+        if (xiyaFlags.isPreparationPhase == 1 && ps.pprtnswitch ==1) {
+            on_preparation_phase(&xiyaFlags, &gameState);
+        } else {
+            print_actions(&gameState);
+            printf("%d\n", xiyaFlags.isPreparationPhase);
+            break;  // Break the loop when isPreparationPhase is 0
+        }
     }
-
-    if (xiyaFlags.isPreparationPhase == 1) {
-        on_preparation_phase();
-    }
-
 
     return 0;
 }
