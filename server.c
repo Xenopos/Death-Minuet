@@ -43,7 +43,7 @@ typedef struct {
     int execswitch;
 } Phaseswitch;
 
-void on_execution_phase(GameState *gameState);
+void on_execution_phase(XiyaFlags *xiyaFlags, GameState *gameState);
 void clear_input_buffer(void);
 void on_preparation_phase(XiyaFlags *xiyaFlags, GameState *gameState, Phaseswitch *ps);
 void print_actions(const GameState *gameState);
@@ -64,60 +64,61 @@ int main(int argc, char const *argv[]) {
     ps.pprtnswitch = 1;
 
     while (GameStartflag) {
-        if (xiyaFlags.isPreparationPhase == 1 && ps.pprtnswitch == 1) {
+        if (xiyaFlags.isPreparationPhase == 1 && xiyaFlags.isExecutionPhase == 0) {
             on_preparation_phase(&xiyaFlags, &gameState, &ps);
-        }else if (xiyaFlags.isExecutionPhase == 0 && ps.execswitch == 1) {
-            on_execution_phase(&gameState);
-
+        }  if (xiyaFlags.isExecutionPhase == 1 && xiyaFlags.isPreparationPhase == 0) {
+            on_execution_phase(&xiyaFlags, &gameState);
         } else {
-            xiyaFlags.isPreparationPhase = 1;
-            on_execution_phase(&gameState);
-            print_actions(&gameState);
-            printf("%d\n", xiyaFlags.isPreparationPhase);
+            printf("Error with Execution phase\n");
         }
     }
 
     return 0;
 }
 
-void on_execution_phase(GameState *gameState) {
-        for (int compare = 0; compare < 5; ++compare) {
-        int xiyaAction = gameState->Xiyactions[compare].actioninput;
-        int shizukaAction = gameState->Shizukaactions[compare].actioninput;
 
-        if (xiyaAction == 1 && shizukaAction == 1)
-            printf("Xiya initiated attack and Shizuka initiated attack\n");
-        else if (xiyaAction == 2 && shizukaAction == 1)
-            printf("Xiya initiated heal and Shizuka initiated attack\n");
-        else if (xiyaAction == 3 && shizukaAction == 1)
-            printf("Xiya initiated defend and Shizuka initiated attack\n");
-        else if (xiyaAction == 4 && shizukaAction == 1)
-            printf("Xiya initiated counter and Shizuka initiated attack\n");
-        else if (xiyaAction == 1 && shizukaAction == 2)
-            printf("Xiya initiated attack and Shizuka initiated heal\n");
-        else if (xiyaAction == 2 && shizukaAction == 2)
-            printf("Xiya initiated heal and Shizuka initiated heal\n");
-        else if (xiyaAction == 3 && shizukaAction == 2)
-            printf("Xiya initiated defend and Shizuka initiated heal\n");
-        else if (xiyaAction == 4 && shizukaAction == 2)
-            printf("Xiya initiated counter and Shizuka initiated heal\n");
-        else if (xiyaAction == 1 && shizukaAction == 3)
-            printf("Xiya initiated attack and Shizuka initiated defend\n");
-        else if (xiyaAction == 2 && shizukaAction == 3)
-            printf("Xiya initiated heal and Shizuka initiated defend\n");
-        else if (xiyaAction == 3 && shizukaAction == 3)
-            printf("Xiya initiated defend and Shizuka initiated defend\n");
-        else if (xiyaAction == 4 && shizukaAction == 3)
-            printf("Xiya initiated counter and Shizuka initiated defend\n");
-        else if (xiyaAction == 1 && shizukaAction == 4)
-            printf("Xiya initiated attack and Shizuka initiated counter\n");
-        else if (xiyaAction == 2 && shizukaAction == 4)
-            printf("Xiya initiated heal and Shizuka initiated counter\n");
-        else if (xiyaAction == 3 && shizukaAction == 4)
-            printf("Xiya initiated defend and Shizuka initiated counter\n");
-        else if (xiyaAction == 4 && shizukaAction == 4)
-            printf("Xiya initiated counter and Shizuka initiated counter\n");
-    }
+void on_execution_phase(XiyaFlags *xiyaFlags,GameState *gameState) {
+        {for (int compare = 0; compare < 5; ++compare) {
+                int xiyaAction = gameState->Xiyactions[compare].actioninput;
+                int shizukaAction = gameState->Shizukaactions[compare].actioninput;
+        
+                if (xiyaAction == 1 && shizukaAction == 1)
+                    printf("Xiya initiated attack and Shizuka initiated attack\n");
+                else if (xiyaAction == 2 && shizukaAction == 1)
+                    printf("Xiya initiated heal and Shizuka initiated attack\n");
+                else if (xiyaAction == 3 && shizukaAction == 1)
+                    printf("Xiya initiated defend and Shizuka initiated attack\n");
+                else if (xiyaAction == 4 && shizukaAction == 1)
+                    printf("Xiya initiated counter and Shizuka initiated attack\n");
+                else if (xiyaAction == 1 && shizukaAction == 2)
+                    printf("Xiya initiated attack and Shizuka initiated heal\n");
+                else if (xiyaAction == 2 && shizukaAction == 2)
+                    printf("Xiya initiated heal and Shizuka initiated heal\n");
+                else if (xiyaAction == 3 && shizukaAction == 2)
+                    printf("Xiya initiated defend and Shizuka initiated heal\n");
+                else if (xiyaAction == 4 && shizukaAction == 2)
+                    printf("Xiya initiated counter and Shizuka initiated heal\n");
+                else if (xiyaAction == 1 && shizukaAction == 3)
+                    printf("Xiya initiated attack and Shizuka initiated defend\n");
+                else if (xiyaAction == 2 && shizukaAction == 3)
+                    printf("Xiya initiated heal and Shizuka initiated defend\n");
+                else if (xiyaAction == 3 && shizukaAction == 3)
+                    printf("Xiya initiated defend and Shizuka initiated defend\n");
+                else if (xiyaAction == 4 && shizukaAction == 3)
+                    printf("Xiya initiated counter and Shizuka initiated defend\n");
+                else if (xiyaAction == 1 && shizukaAction == 4)
+                    printf("Xiya initiated attack and Shizuka initiated counter\n");
+                else if (xiyaAction == 2 && shizukaAction == 4)
+                    printf("Xiya initiated heal and Shizuka initiated counter\n");
+                else if (xiyaAction == 3 && shizukaAction == 4)
+                    printf("Xiya initiated defend and Shizuka initiated counter\n");
+                else if (xiyaAction == 4 && shizukaAction == 4)
+                    printf("Xiya initiated counter and Shizuka initiated counter\n");
+            }}
+    sleep(10);
+
+    xiyaFlags->isExecutionPhase = 0;
+    xiyaFlags->isPreparationPhase = 1;
 }
 
 void clear_input_buffer(void) {
@@ -149,11 +150,11 @@ void on_preparation_phase(XiyaFlags *xiyaFlags, GameState *gameState, Phaseswitc
             }
 
             if (gameState->Xiyactions[choosingAction].actioninput < 1 || gameState->Xiyactions[choosingAction].actioninput > 4) {
-    hasInvalidActionInput = 1;
-    printf("Invalid action input. Please enter numbers between 1 and 4 or 0 to clear.\n");
-    clear_input_buffer();
-    choosingAction = -1;
-    break;
+            hasInvalidActionInput = 1;
+            printf("Invalid action input. Please enter numbers between 1 and 4 or 0 to clear.\n");
+            clear_input_buffer();
+            choosingAction = -1;
+            break;
 }
 
             actionsInputted++;
