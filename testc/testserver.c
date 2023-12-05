@@ -47,12 +47,20 @@ typedef struct {
 
 void on_execution_phase(XiyaFlags *xiyaFlags, GameState *gameState, int client_socket);
 void clear_input_buffer(void);
-void on_preparation_phase(XiyaFlags *xiyaFlags, GameState *gameState, Phaseswitch *ps);
+void on_preparation_phase(XiyaFlags *xiyaFlags, GameState *gameState, Phaseswitch *ps, int client_socket);
 void print_actions(const GameState *gameState);
 void show_intro(void);
 
+<<<<<<< Updated upstream
 
 /*--------------------------------------------------*/
+=======
+/*---------------------------------------------------------*/
+void send_actions_to_client(int client_socket, const GameState *gameState) {
+    ssize_t bytes_sent = send(client_socket, gameState->Xiyactions, sizeof(Action) * ACTION_COUNT, 0);
+}
+
+>>>>>>> Stashed changes
 void receive_actions_from_client(int client_socket, GameState *gameState) {
     recv(client_socket, gameState->Shizukaactions, sizeof(Action) * ACTION_COUNT, 0);
 }
@@ -73,6 +81,10 @@ void send_isexecphase_to_client(int client_socket, XiyaFlags *xiyaFlags) {
 void send_isprprtnphase_to_client(int client_socket, XiyaFlags *xiyaFlags) {
     send(client_socket,&(xiyaFlags->isXiyaPreparationPhase), sizeof(int),  0);
 }
+<<<<<<< Updated upstream
+=======
+/*---------------------------------------------------------*/
+>>>>>>> Stashed changes
 
 
 /*--------------------------------------------------*/
@@ -108,6 +120,7 @@ int main(int argc, char const *argv[]) {
     int addrlen = sizeof(client_address);
     if ((client_socket = accept(server_socket, (struct sockaddr *)&client_address, (socklen_t *)&addrlen)) < 0) {
         perror("Acceptance failed");
+
         exit(EXIT_FAILURE);
     }
 
@@ -130,11 +143,16 @@ int main(int argc, char const *argv[]) {
 
         }
         if (xiyaFlags.isPreparationPhase == 1 && xiyaFlags.isExecutionPhase == 0) {
+<<<<<<< Updated upstream
             on_preparation_phase(&xiyaFlags, &gameState, &ps);
             receive_actions_from_client(client_socket, &gameState);
             receive_isprprtnphase_from_client( client_socket, &xiyaFlags);
             receive_isexecphase_from_client( client_socket, &xiyaFlags);      
         }  if (xiyaFlags.isExecutionPhase == 1 && xiyaFlags.isPreparationPhase == 0) {
+=======
+            on_preparation_phase(&xiyaFlags, &gameState, &ps, client_socket);
+        }  if (xiyaFlags.isExecutionPhase == 1 && xiyaFlags.isPreparationPhase == 0 ) {
+>>>>>>> Stashed changes
             on_execution_phase(&xiyaFlags, &gameState, client_socket);
         } else {
             receive_actions_from_client(client_socket, &gameState);
@@ -197,7 +215,13 @@ void on_execution_phase(XiyaFlags *xiyaFlags, GameState *gameState, int client_s
     sleep(3);
     printf("Phase complete. Proceeding to Preparation Phase\n");
     xiyaFlags->isExecutionPhase = 0;
+<<<<<<< Updated upstream
     xiyaFlags->isPreparationPhase = 1;
+=======
+    xiyaFlags->isPreparationPhase = 0;
+    xiyaFlags->isXiyaExecutionPhase = 0;
+    send_isexecphase_to_client(client_socket, xiyaFlags);
+>>>>>>> Stashed changes
 }
 
 void clear_input_buffer(void) {
@@ -205,7 +229,7 @@ void clear_input_buffer(void) {
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
-void on_preparation_phase(XiyaFlags *xiyaFlags, GameState *gameState, Phaseswitch *ps) {
+void on_preparation_phase(XiyaFlags *xiyaFlags, GameState *gameState, Phaseswitch *ps, int client_socket) {
      int actionsInputted = 0;
     int choosingAction = 0;
 
@@ -279,6 +303,7 @@ void on_preparation_phase(XiyaFlags *xiyaFlags, GameState *gameState, Phaseswitc
                     printf("passed");
                     xiyaFlags->isPreparationPhase = 0;
                     printf("%d\n", xiyaFlags->isPreparationPhase);
+                    send_actions_to_client(client_socket, gameState);
                     ps->pprtnswitch = 0;
                     break; 
                 } else if (proceedInput == 0) {

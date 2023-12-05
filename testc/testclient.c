@@ -84,9 +84,6 @@ void receive_isprprtnphase_from_server(int server_socket,  ShizukaFlags *shizuka
 
 /*--------------------------------------------------*/
 
-
-
-
 int main(int argc, char const *argv[]) {
     show_intro();
 
@@ -108,6 +105,7 @@ int main(int argc, char const *argv[]) {
     if (connect(client_socket, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) {
         perror("Connection failed");
         exit(EXIT_FAILURE);
+        printf("Xiya fuck you");
     }
 
 
@@ -253,8 +251,14 @@ void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phas
             int proceedInput;
             if (scanf("%d", &proceedInput) == 1) {
                 if (proceedInput == 1) {
+<<<<<<< Updated upstream
                     shizukaflags->isExecutionPhase = 1;
                     shizukaflags->isPreparationPhase = 0;
+=======
+                    shizukaflags->isExecutionPhase = 0;
+                    shizukaflags->isPreparationPhase = 1;
+                    shizukaflags->isXiyaExecutionPhase= 0;
+>>>>>>> Stashed changes
                     send_actions_to_server(server_socket, gameState);
                     send_isprprtnphase_to_server(server_socket, shizukaflags);
                     send_isexecphase_to_server(server_socket, shizukaflags);
