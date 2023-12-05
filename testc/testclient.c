@@ -37,6 +37,8 @@ typedef struct {
     int isXiyaDisconnected;  
     int isPreparationPhase;  
     int isExecutionPhase;   
+    int isXiyaExecutionPhase;
+    int isXiyaPreparationPhase;
 } ShizukaFlags;
 
 typedef struct{
@@ -45,13 +47,13 @@ typedef struct{
 } Phaseswitch;
 
 
-void on_execution_phase(ShizukaFlags *shizukaflags, GameState *gameState);
+void on_execution_phase(ShizukaFlags *shizukaflags, GameState *gameState,int server_socket);
 void clear_input_buffer(void);
 void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phaseswitch *ps, int server_socket);
 void print_actions(const GameState *gameState);
 void show_intro(void);
 
-
+/*--------------------------------------------------*/
 void send_actions_to_server(int server_socket, const GameState *gameState) {
     ssize_t bytes_sent = send(server_socket, gameState->Shizukaactions, sizeof(Action) * ACTION_COUNT, 0);
 
@@ -63,9 +65,27 @@ void send_actions_to_server(int server_socket, const GameState *gameState) {
         printf("Warning: Partial send. Not all data sent.\n");
     }
 }
+
 void send_isprprtnphase_to_server(int server_socket, const ShizukaFlags *shizukaflags) {
+    send(server_socket, &(shizukaflags->isPreparationPhase), sizeof(int), 0);
+}
+
+void send_isexecphase_to_server(int server_socket, const ShizukaFlags *shizukaflags) {
     send(server_socket, &(shizukaflags->isExecutionPhase), sizeof(int), 0);
 }
+
+void receive_isexecphase_from_server(int server_socket,  ShizukaFlags *shizukaflags) {
+    recv(server_socket, &(shizukaflags->isXiyaExecutionPhase), sizeof(int),  0);
+}
+
+void receive_isprprtnphase_from_server(int server_socket,  ShizukaFlags *shizukaflags) {
+    recv(server_socket, &(shizukaflags->isXiyaPreparationPhase), sizeof(int),  0);
+}
+
+/*--------------------------------------------------*/
+
+
+
 
 int main(int argc, char const *argv[]) {
     show_intro();
@@ -102,7 +122,7 @@ int main(int argc, char const *argv[]) {
         if (shizukaflags.isPreparationPhase == 1 && shizukaflags.isExecutionPhase == 0) {
             on_preparation_phase(&shizukaflags, &gameState, &ps, client_socket); 
         }  if (shizukaflags.isExecutionPhase == 1 && shizukaflags.isPreparationPhase == 0) {
-            on_execution_phase(&shizukaflags, &gameState);
+            on_execution_phase(&shizukaflags, &gameState, client_socket);
         } else {
             printf("Error with Execution phase\n");
         }
@@ -112,8 +132,8 @@ int main(int argc, char const *argv[]) {
 }
 
 
-void on_execution_phase(ShizukaFlags *shizukaflags,GameState *gameState) {
-        {for (int compare = 0; compare < 3; ++compare) {
+void on_execution_phase(ShizukaFlags *shizukaflags,GameState *gameState, int server_socket) {
+        {for (int compare = 0; compare < 4; ++compare) {
                 int xiyaAction = gameState->Xiyactions[compare].actioninput;
                 int shizukaAction = gameState->Shizukaactions[compare].actioninput;
         
@@ -154,6 +174,8 @@ void on_execution_phase(ShizukaFlags *shizukaflags,GameState *gameState) {
     printf("Phase complete. Proceeding to Preparation Phase\n");
     shizukaflags->isExecutionPhase = 0;
     shizukaflags->isPreparationPhase = 1;
+    send_isprprtnphase_to_server(server_socket, shizukaflags);
+    send_isexecphase_to_server(server_socket, shizukaflags);
 }
 
 void clear_input_buffer(void) {
@@ -162,7 +184,7 @@ void clear_input_buffer(void) {
 }
 
 void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phaseswitch *ps, int server_socket){
-     int actionsInputted = 0;
+    int actionsInputted = 0;
     int choosingAction = 0;
 
     while (shizukaflags->isPreparationPhase) {
@@ -232,10 +254,10 @@ void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phas
             if (scanf("%d", &proceedInput) == 1) {
                 if (proceedInput == 1) {
                     shizukaflags->isExecutionPhase = 1;
-                    printf("passed");
                     shizukaflags->isPreparationPhase = 0;
                     send_actions_to_server(server_socket, gameState);
-                    send_isprprtnphase_to_server(server_socket,shizukaflags);
+                    send_isprprtnphase_to_server(server_socket, shizukaflags);
+                    send_isexecphase_to_server(server_socket, shizukaflags);
                     printf("%d\n", shizukaflags->isPreparationPhase);
                     ps->pprtnswitch = 0;
                     break; 

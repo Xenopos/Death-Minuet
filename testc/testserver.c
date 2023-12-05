@@ -1,4 +1,4 @@
-        #include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -36,6 +36,8 @@ typedef struct {
     int isXiyaDisconnected;
     int isPreparationPhase;
     int isExecutionPhase;
+    int isXiyaExecutionPhase;
+    int isXiyaPreparationPhase;
 } XiyaFlags;
 
 typedef struct {
@@ -44,25 +46,36 @@ typedef struct {
 } Phaseswitch;
 
 void on_execution_phase(XiyaFlags *xiyaFlags, GameState *gameState, int client_socket);
-
 void clear_input_buffer(void);
 void on_preparation_phase(XiyaFlags *xiyaFlags, GameState *gameState, Phaseswitch *ps);
 void print_actions(const GameState *gameState);
 void show_intro(void);
 
+
+/*--------------------------------------------------*/
 void receive_actions_from_client(int client_socket, GameState *gameState) {
     recv(client_socket, gameState->Shizukaactions, sizeof(Action) * ACTION_COUNT, 0);
-}
-
-void send_actions_to_server(int client_socket, const GameState *gameState) {
-    send(client_socket, gameState->Shizukaactions, sizeof(Action) * ACTION_COUNT, 0);
 }
 
 void receive_isprprtnphase_from_client(int client_socket, XiyaFlags *xiyaFlags) {
     recv(client_socket, &(xiyaFlags->isPreparationPhase), sizeof(int), 0);
 }
 
+void receive_isexecphase_from_client(int client_socket, XiyaFlags *xiyaFlags) {
+    recv(client_socket, &(xiyaFlags->isExecutionPhase), sizeof(int), 0);
+}
 
+//call to send isXiyaExecutionPhase to client
+void send_isexecphase_to_client(int client_socket, XiyaFlags *xiyaFlags) {
+    send(client_socket,&(xiyaFlags->isXiyaExecutionPhase), sizeof(int), 0);
+}
+//call to send isXiyaPreparationPhase to client
+void send_isprprtnphase_to_client(int client_socket, XiyaFlags *xiyaFlags) {
+    send(client_socket,&(xiyaFlags->isXiyaPreparationPhase), sizeof(int),  0);
+}
+
+
+/*--------------------------------------------------*/
 //MAIN
 int main(int argc, char const *argv[]) {
     show_intro();
@@ -98,7 +111,7 @@ int main(int argc, char const *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    int GameStartflag = 1;
+
     GameState gameState;
     // health init
     gameState.XiyaPlayer.maxHealth = 100;
@@ -110,18 +123,22 @@ int main(int argc, char const *argv[]) {
     XiyaFlags xiyaFlags;
     xiyaFlags.isPreparationPhase = 0;
     ps.pprtnswitch = 1;
+    int GameStartflag = 1;
 
     while (GameStartflag) {
+        if (xiyaFlags.isPreparationPhase == 0 && xiyaFlags.isExecutionPhase == 0) {
+
+        }
         if (xiyaFlags.isPreparationPhase == 1 && xiyaFlags.isExecutionPhase == 0) {
             on_preparation_phase(&xiyaFlags, &gameState, &ps);
             receive_actions_from_client(client_socket, &gameState);
             receive_isprprtnphase_from_client( client_socket, &xiyaFlags);
+            receive_isexecphase_from_client( client_socket, &xiyaFlags);      
         }  if (xiyaFlags.isExecutionPhase == 1 && xiyaFlags.isPreparationPhase == 0) {
             on_execution_phase(&xiyaFlags, &gameState, client_socket);
         } else {
-                        receive_actions_from_client(client_socket, &gameState);
+            receive_actions_from_client(client_socket, &gameState);
             receive_isprprtnphase_from_client( client_socket, &xiyaFlags);
-
         }
     }
     close(server_socket);
@@ -132,8 +149,7 @@ int main(int argc, char const *argv[]) {
 
 
 void on_execution_phase(XiyaFlags *xiyaFlags, GameState *gameState, int client_socket){
-    receive_actions_from_client(client_socket, gameState);
-        {for (int compare = 0; compare < 3; ++compare) {
+        {for (int compare = 0; compare < 4; ++compare) {
                 int xiyaAction = gameState->Xiyactions[compare].actioninput;
                 int shizukaAction = gameState->Shizukaactions[compare].actioninput;
                 
@@ -142,10 +158,14 @@ void on_execution_phase(XiyaFlags *xiyaFlags, GameState *gameState, int client_s
                     gameState->ShizukaPlayer.currentHealth -= 20;
                     gameState->XiyaPlayer.currentHealth -= 20;
                     }
-                else if (xiyaAction == 2 && shizukaAction == 1)
+                else if (xiyaAction == 2 && shizukaAction == 1){
                     printf("Xiya initiated heal and Shizuka initiated attack\n");
-                else if (xiyaAction == 3 && shizukaAction == 1)
+                    gameState->XiyaPlayer.currentHealth -= 10;
+                }
+                else if (xiyaAction == 3 && shizukaAction == 1){
                     printf("Xiya initiated defend and Shizuka initiated attack\n");
+                    continue;
+                }
                 else if (xiyaAction == 4 && shizukaAction == 1)
                     printf("Xiya initiated counter and Shizuka initiated attack\n");
                 else if (xiyaAction == 1 && shizukaAction == 2)
@@ -175,7 +195,7 @@ void on_execution_phase(XiyaFlags *xiyaFlags, GameState *gameState, int client_s
             }}
     printf("Updated Health - Xiya: %d, Shizuka: %d\n", gameState->XiyaPlayer.currentHealth, gameState->ShizukaPlayer.currentHealth);
     sleep(3);
-    printf("Phase complete. Proceeding to Preparation Phase");
+    printf("Phase complete. Proceeding to Preparation Phase\n");
     xiyaFlags->isExecutionPhase = 0;
     xiyaFlags->isPreparationPhase = 1;
 }
@@ -259,7 +279,7 @@ void on_preparation_phase(XiyaFlags *xiyaFlags, GameState *gameState, Phaseswitc
                     printf("passed");
                     xiyaFlags->isPreparationPhase = 0;
                     printf("%d\n", xiyaFlags->isPreparationPhase);
-                        ps->pprtnswitch = 0;
+                    ps->pprtnswitch = 0;
                     break; 
                 } else if (proceedInput == 0) {
                     actionsInputted = 0;
