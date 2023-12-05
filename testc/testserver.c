@@ -109,9 +109,9 @@ int main(int argc, char const *argv[]) {
     if ((client_socket = accept(server_socket, (struct sockaddr *)&client_address, (socklen_t *)&addrlen)) < 0) {
         perror("Acceptance failed");
         exit(EXIT_FAILURE);
+    }
         printf("Client is Connected\n");
         printf("Mentee Shizuka is ready...\n");
-    }
 
 
     GameState gameState;
@@ -317,5 +317,4 @@ void print_actions(const GameState *gameState) {
 
 void show_intro(void) {
     printf("Mentee Shizuka is not ready...\n");
-    printf("Mentee Shizuka is ready...\n");
 }
