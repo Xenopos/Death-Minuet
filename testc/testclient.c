@@ -109,7 +109,8 @@ int main(int argc, char const *argv[]) {
         perror("Connection failed");
         exit(EXIT_FAILURE);
     }
-
+        printf("Server Is Connected\n");
+        printf("Mentee Shizuka is ready...\n");
 
     int GameStartflag = 1;
     GameState gameState;
@@ -295,5 +296,4 @@ void print_actions(const GameState *gameState) {
 
 void show_intro(void) {
     printf("Mentee Shizuka is not ready...\n");
-    printf("Mentee Shizuka is ready...\n");
 }
