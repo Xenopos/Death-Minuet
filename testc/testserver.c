@@ -62,6 +62,8 @@ void receive_isprprtnphase_from_client(int client_socket, XiyaFlags *xiyaFlags) 
     recv(client_socket, &(xiyaFlags->isPreparationPhase), sizeof(int), 0);
 }
 
+
+//MAIN
 int main(int argc, char const *argv[]) {
     show_intro();
 
@@ -112,11 +114,14 @@ int main(int argc, char const *argv[]) {
     while (GameStartflag) {
         if (xiyaFlags.isPreparationPhase == 1 && xiyaFlags.isExecutionPhase == 0) {
             on_preparation_phase(&xiyaFlags, &gameState, &ps);
+            receive_actions_from_client(client_socket, &gameState);
             receive_isprprtnphase_from_client( client_socket, &xiyaFlags);
         }  if (xiyaFlags.isExecutionPhase == 1 && xiyaFlags.isPreparationPhase == 0) {
             on_execution_phase(&xiyaFlags, &gameState, client_socket);
         } else {
-            printf("Error with Execution phase\n");
+                        receive_actions_from_client(client_socket, &gameState);
+            receive_isprprtnphase_from_client( client_socket, &xiyaFlags);
+
         }
     }
     close(server_socket);
@@ -128,7 +133,7 @@ int main(int argc, char const *argv[]) {
 
 void on_execution_phase(XiyaFlags *xiyaFlags, GameState *gameState, int client_socket){
     receive_actions_from_client(client_socket, gameState);
-        {for (int compare = 0; compare < 5; ++compare) {
+        {for (int compare = 0; compare < 3; ++compare) {
                 int xiyaAction = gameState->Xiyactions[compare].actioninput;
                 int shizukaAction = gameState->Shizukaactions[compare].actioninput;
                 

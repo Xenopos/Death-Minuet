@@ -53,9 +53,16 @@ void show_intro(void);
 
 
 void send_actions_to_server(int server_socket, const GameState *gameState) {
-    send(server_socket, gameState->Shizukaactions, sizeof(Action) * ACTION_COUNT, 0);
-}
+    ssize_t bytes_sent = send(server_socket, gameState->Shizukaactions, sizeof(Action) * ACTION_COUNT, 0);
 
+    if (bytes_sent == -1) {
+        perror("Error sending actions to server");
+        exit(EXIT_FAILURE);  // You may choose a different way to handle the error
+    } else if (bytes_sent < sizeof(Action) * ACTION_COUNT) {
+        // Handle partial send if needed
+        printf("Warning: Partial send. Not all data sent.\n");
+    }
+}
 void send_isprprtnphase_to_server(int server_socket, const ShizukaFlags *shizukaflags) {
     send(server_socket, &(shizukaflags->isExecutionPhase), sizeof(int), 0);
 }
@@ -106,7 +113,7 @@ int main(int argc, char const *argv[]) {
 
 
 void on_execution_phase(ShizukaFlags *shizukaflags,GameState *gameState) {
-        {for (int compare = 0; compare < 5; ++compare) {
+        {for (int compare = 0; compare < 3; ++compare) {
                 int xiyaAction = gameState->Xiyactions[compare].actioninput;
                 int shizukaAction = gameState->Shizukaactions[compare].actioninput;
         
