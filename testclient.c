@@ -3,12 +3,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 
 
 #define PORT 17713
 #define MAX_MESSAGE_SIZE 1024
 #define ACTION_COUNT 5
-
+#define maxslot 1
 
 typedef struct {
     char name[20];
@@ -203,7 +204,7 @@ void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phas
     while (shizukaflags->isXiyaPreparationPhase) {
         int hasInvalidActionInput = 0;
 
-        for (choosingAction; choosingAction < 4; choosingAction++) {
+        for (choosingAction; choosingAction < maxslot; choosingAction++) {
             printf("Enter desired action for slot %d (enter 0 to clear): ", choosingAction + 1);
             if (scanf("%d", &gameState->Shizukaactions[choosingAction].actioninput) != 1) {
                 hasInvalidActionInput = 1;
@@ -236,10 +237,10 @@ void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phas
             continue;
         }
 
-        if (actionsInputted == 4) {
+        if (actionsInputted == maxslot) {
             printf("All slots are filled.\n");
 
-            for (int count = 0; count < 4; count++) {
+            for (int count = 0; count < maxslot; count++) {
                 int actionInput = gameState->Shizukaactions[count].actioninput;
                 printf("Slot %d: %d ", count + 1, actionInput);
 
@@ -293,13 +294,13 @@ void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phas
 
 void print_actions(const GameState *gameState) {
     printf("Shizuka Actions: ");
-    for (int count = 0; count < 4; count++) {
+    for (int count = 0; count < maxslot; count++) {
         int actionInput = gameState->Shizukaactions[count].actioninput;
         printf("%d ", actionInput);
     }
 
     printf("\nXiya Actions: ");
-    for (int count = 0; count < 4; count++) {
+    for (int count = 0; count < maxslot; count++) {
         int actionInput = gameState->Xiyactions[count].actioninput;
         printf("%d ", actionInput);
     }
