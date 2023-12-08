@@ -11,6 +11,7 @@
 #define ACTION_COUNT 5
 #define maxslot 1
 
+
 typedef struct {
     char name[20];
     int currentHealth;
