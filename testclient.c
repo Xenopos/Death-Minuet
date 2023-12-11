@@ -302,7 +302,7 @@ void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phas
                 break;
             case 2: 
                 printf("heal\n");
-                stamen->staminausage = 20;
+                stamen->staminausage = 40;
                 break;
             case 3: 
                 printf("defend\n");
@@ -340,7 +340,7 @@ void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phas
 
         if (actionsInputted == maxslot) {
             printf("All slots are filled.\n");
-            printf("Current Stamina:%d  \n", stamen->currentstamina);
+            printf("Current Stamina: %d  \n", stamen->currentstamina);
             for (int count = 0; count < maxslot; count++) {
                 int actionInput = gameState->Shizukaactions[count].actioninput;
                 printf("Slot %d: %d ", count + 1, actionInput);

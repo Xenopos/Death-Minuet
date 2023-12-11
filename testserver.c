@@ -1,10 +1,10 @@
+#include <ncurses.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
-
 
 #define PORT 17713
 #define MAX_MESSAGE_SIZE 1024
@@ -14,6 +14,8 @@
 #define maxslot 1
 #define maxstamina 100
 #define staminaregen 10
+#define TITLE "Death Minuet"
+
 
 typedef struct{
     int currentstamina;
@@ -156,10 +158,15 @@ int main(int argc, char const *argv[]) {
 
 
     while (GameStartflag) {
-        if(gameState.XiyaPlayer.currentHealth <= 0 || gameState.ShizukaPlayer.currentHealth <=0)
+        if(gameState.XiyaPlayer.currentHealth <= 0)
         {
             GameStartflag == 0;
-            printf("Deads \n");
+            printf("Xiya Lost \n");
+        }
+        else if(gameState.ShizukaPlayer.currentHealth <=0)
+        {
+            GameStartflag == 0;
+            printf("Shizuka Lost \n");
         }
         if (xiyaFlags.isPreparationPhase == 1 && xiyaFlags.isExecutionPhase == 0) {
             on_preparation_phase(&xiyaFlags, &gameState, &ps, &stamen, client_socket);
@@ -240,10 +247,12 @@ void on_execution_phase(XiyaFlags *xiyaFlags, GameState *gameState, counterflag 
                         counters->ShizukaCounter = 0;
                        gameState->XiyaPlayer.currentHealth -= 20;
                     }
+                    else{
                     counters->XiyaCounter = 0;
                     counters->ShizukaCounter = 0;
                     printf("Xiya initiated defend and Shizuka initiated attack\n");
                     gameState->XiyaPlayer.currentHealth -= 10;
+                    }
                 }
 
                 else if (xiyaAction == 4 && shizukaAction == 1){
@@ -297,11 +306,13 @@ void on_execution_phase(XiyaFlags *xiyaFlags, GameState *gameState, counterflag 
                         gameState->ShizukaPlayer.currentHealth -= 20;
                         printf("Xiya initiated attack and Shizuka initiated defend\n");
                         printf("Oh no you don't!\n");
-                    }
+                    }else{
+                        
                     counters->XiyaCounter = 0;
                     counters->ShizukaCounter = 0;
                     gameState->ShizukaPlayer.currentHealth -= 10;
                     printf("Xiya initiated attack and Shizuka initiated defend\n");
+                    }
                 }
 
                 else if (xiyaAction == 2 && shizukaAction == 3){
@@ -360,10 +371,12 @@ void on_execution_phase(XiyaFlags *xiyaFlags, GameState *gameState, counterflag 
                         printf("Shizuka Countered\n");
                         gameState->XiyaPlayer.currentHealth -= counter_damage;
                     }
+                    else{
                     gameState->XiyaPlayer.currentHealth -= 20;
                     counters->XiyaCounter = 0;
                     counters->ShizukaCounter = 0;
                     printf("Xiya initiated observe and Shizuka initiated attack\n");                  
+                    }
                 }
                 else if(xiyaAction == 5 && shizukaAction == 2){
                     counters->XiyaCounter = 0;
@@ -385,11 +398,13 @@ void on_execution_phase(XiyaFlags *xiyaFlags, GameState *gameState, counterflag 
                         printf("Xiya Countered, GET FCKED\n");
                         counters->XiyaCounter = 0;
                         gameState->ShizukaPlayer.currentHealth -= counter_damage;
-                    }
+                    }else{
+
                     gameState->ShizukaPlayer.currentHealth -= 20;
-                    counters->XiyaCounter = 0;
                     counters->ShizukaCounter = 0;
+                    counters->XiyaCounter = 0;
                     printf("Xiya initiated attack and Shizuka initiated observe\n");                  
+                    }
                 }
                 else if(xiyaAction == 2 && shizukaAction == 5){
                     counters->XiyaCounter = 0;
@@ -500,7 +515,7 @@ void on_preparation_phase(XiyaFlags *xiyaFlags, GameState *gameState, Phaseswitc
 
         if (actionsInputted == maxslot) {
             printf("All slots are filled.\n");
-            printf("Current Stamina:%d  \n", stamen->currentstamina);
+            printf("Current Stamina: %d  \n", stamen->currentstamina);
             for (int count = 0; count < maxslot; count++) {
                 int actionInput = gameState->Xiyactions[count].actioninput;
                 printf("Slot %d: %d ", count + 1, actionInput);
@@ -576,5 +591,7 @@ void print_actions(const GameState *gameState) {
 }
 
 void show_intro(void) {
+
+
     printf("Mentee Shizuka is not ready...\n");
 }
