@@ -260,7 +260,7 @@ void on_execution_phase(ShizukaFlags *shizukaflags,GameState *gameState, int ser
     sleep(2);
     shizukaflags->isXiyaPreparationPhase = 1;
     shizukaflags->isXiyaExecutionPhase = 0;
-    printf("Phase complete. Proceeding to Preparation Phase\n");
+    printf("Phase complete.\n");
     shizukaflags->isPreparationPhase = 0;
     shizukaflags->isExecutionPhase = 0;
     send_isprprtnphase_to_server(server_socket, shizukaflags);
