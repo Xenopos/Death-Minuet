@@ -103,7 +103,37 @@ void centerText(const char *text) {
     printf("%*s%s\n", padding, "", text);
 }
 
+int has_enough_stamina(ShizukaPlayer *player, Action *action) {
+    while (1) {
+        if (action->actioninput == 1 && player->currentstamina < 10) {
+            printf("Not enough stamina for Attack. Choose another action or enter 0 to change: ");
+        } else if (action->actioninput == 2 && player->currentstamina < 40) {
+            printf("Not enough stamina for Heal. Choose another action or enter 0 to change: ");
+        } else if (action->actioninput == 3 && player->currentstamina < 30) {
+            printf("Not enough stamina for Defend. Choose another action or enter 0 to change: ");
+        } else if (action->actioninput == 4 && player->currentstamina < 10) {
+            printf("Not enough stamina for Counter. Choose another action or enter 0 to change: ");
+        } else if (action->actioninput == 5 && player->currentstamina < 0) {
+            printf("Not enough stamina for Observe. Choose another action or enter 0 to change: ");
+        } else {
+            break;
+        }
 
+        int changeInput;
+        if (scanf("%d", &changeInput) == 1 && changeInput == 0) {
+            printf("Enter a new action: ");
+            if (scanf("%d", &action->actioninput) != 1) {
+                printf("Invalid input. Please enter a number.\n");
+                clear_input_buffer();
+            }
+        } else {
+            printf("Invalid input. Please enter 0 to change your action.\n");
+            clear_input_buffer();
+        }
+    }
+
+    return 1;
+}
 
 int main(int argc, char const *argv[]) {
     show_intro();
@@ -290,6 +320,11 @@ void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phas
             if (scanf("%d", &gameState->Shizukaactions[choosingAction].actioninput) != 1) {
                 hasInvalidActionInput = 1;
                 printf("Invalid input. Please enter a number.\n");
+                clear_input_buffer();
+                break;
+            }
+            if (!has_enough_stamina(&gameState->ShizukaPlayer, &gameState->Shizukaactions[choosingAction])) {
+                hasInvalidActionInput = 1;
                 clear_input_buffer();
                 break;
             }
