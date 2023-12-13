@@ -3,19 +3,28 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-
+#include <fcntl.h>
+#include <string.h>
+#include <sys/ioctl.h>
 
 #define PORT 17713
 #define MAX_MESSAGE_SIZE 1024
 #define ACTION_COUNT 5
-
+#define maxslot 1
+#define maxstamina 100
+#define staminaregen 10
+#define serverip "127.0.0.1"
+typedef struct{
+    int currentstamina;
+    int staminausage;
+} stam;
 
 typedef struct {
     char name[20];
     int currentHealth;
     int maxHealth;
 } ShizukaPlayer;
-    
+   
 typedef struct {
     char actionName[20];
     int actioninput;
@@ -31,12 +40,12 @@ typedef struct {
 } GameState;
 
 typedef struct {
-    int isXiyaDead;           
+    int isXiyaDead;          
     int isXiyaTurn;          
     int isShizukaDead;      
     int isXiyaDisconnected;  
     int isPreparationPhase;  
-    int isExecutionPhase;   
+    int isExecutionPhase;  
     int isXiyaExecutionPhase;
     int isXiyaPreparationPhase;
 } ShizukaFlags;
@@ -49,7 +58,7 @@ typedef struct{
 
 void on_execution_phase(ShizukaFlags *shizukaflags, GameState *gameState,int server_socket);
 void clear_input_buffer(void);
-void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phaseswitch *ps, int server_socket);
+void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phaseswitch *ps,stam *stamen, int server_socket);
 void print_actions(const GameState *gameState);
 void show_intro(void);
 
@@ -86,7 +95,13 @@ void receive_action_from_server(int server_socket, GameState *gameState) {
 }
 
 /*--------------------------------------------------*/
+void centerText(const char *text) {
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
+    int padding = (w.ws_col - strlen(text)) / 2;
+    printf("%*s%s\n", padding, "", text);
+}
 
 
 
@@ -103,7 +118,7 @@ int main(int argc, char const *argv[]) {
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(PORT);
 
-    if (inet_pton(AF_INET, "127.0.0.1", &server_address.sin_addr) <= 0) {
+    if (inet_pton(AF_INET, "172.16.7.77", &server_address.sin_addr) <= 0) {
         perror("Invalid address/ Address not supported");
         exit(EXIT_FAILURE);
     }
@@ -122,15 +137,19 @@ int main(int argc, char const *argv[]) {
     shizukaflags.isXiyaPreparationPhase = 1;
     ps.pprtnswitch = 1;
 
+    stam stamen;
+    stamen.currentstamina = 100;
+
     while (GameStartflag) {
         if (shizukaflags.isXiyaPreparationPhase == 1 && shizukaflags.isXiyaExecutionPhase == 0) {
-            on_preparation_phase(&shizukaflags, &gameState, &ps, client_socket); 
-
+            on_preparation_phase(&shizukaflags, &gameState, &ps, &stamen, client_socket);
         }  
-        if (shizukaflags.isXiyaExecutionPhase == 1 && shizukaflags.isXiyaPreparationPhase == 0) {
+        else if (shizukaflags.isXiyaExecutionPhase == 1 && shizukaflags.isXiyaPreparationPhase == 0) {
             on_execution_phase(&shizukaflags, &gameState, client_socket);
-        } 
+        }
         else {
+            send_isprprtnphase_to_server(client_socket, &shizukaflags);
+            send_isexecphase_to_server(client_socket, &shizukaflags);
             receive_action_from_server(client_socket, &gameState);
             receive_isprprtnphase_from_server(client_socket,&shizukaflags);
             receive_isexecphase_from_server(client_socket, &shizukaflags);
@@ -147,45 +166,103 @@ void on_execution_phase(ShizukaFlags *shizukaflags,GameState *gameState, int ser
                 int xiyaAction = gameState->Xiyactions[compare].actioninput;
                 int shizukaAction = gameState->Shizukaactions[compare].actioninput;
                 sleep(1);
-                if (xiyaAction == 1 && shizukaAction == 1)
-                    printf("Xiya initiated attack and Shizuka initiated attack\n");
-                else if (xiyaAction == 2 && shizukaAction == 1)
-                    printf("Xiya initiated heal and Shizuka initiated attack\n");
-                else if (xiyaAction == 3 && shizukaAction == 1)
-                    printf("Xiya initiated defend and Shizuka initiated attack\n");
-                else if (xiyaAction == 4 && shizukaAction == 1)
-                    printf("Xiya initiated counter and Shizuka initiated attack\n");
-                else if (xiyaAction == 1 && shizukaAction == 2)
-                    printf("Xiya initiated attack and Shizuka initiated heal\n");
-                else if (xiyaAction == 2 && shizukaAction == 2)
-                    printf("Xiya initiated heal and Shizuka initiated heal\n");
-                else if (xiyaAction == 3 && shizukaAction == 2)
-                    printf("Xiya initiated defend and Shizuka initiated heal\n");
-                else if (xiyaAction == 4 && shizukaAction == 2)
-                    printf("Xiya initiated counter and Shizuka initiated heal\n");
-                else if (xiyaAction == 1 && shizukaAction == 3)
-                    printf("Xiya initiated attack and Shizuka initiated defend\n");
-                else if (xiyaAction == 2 && shizukaAction == 3)
+               if (xiyaAction == 1 && shizukaAction == 1){
+                        printf("\nXiya initiated attack and Shizuka initiated attack\n");
+                }
+
+                else if (xiyaAction == 2 && shizukaAction == 1){
+                    printf("\nXiya initiated heal and Shizuka initiated attack\n");
+                }
+
+                else if (xiyaAction == 3 && shizukaAction == 1){
+                    printf("\nXiya initiated defend and Shizuka initiated attack\n");
+                }
+
+                else if (xiyaAction == 4 && shizukaAction == 1){
+                    printf("Xiya Countered, GET FCKED\n");
+                    printf("\nXiya initiated counter and Shizuka initiated attack\n");
+                }
+
+                else if (xiyaAction == 1 && shizukaAction == 2){
+                    printf("\nXiya initiated attack and Shizuka initiated heal\n");                  
+                }
+
+                else if (xiyaAction == 2 && shizukaAction == 2){
+                    printf("\nXiya initiated heal and Shizuka initiated heal\n");
+                }
+
+                else if (xiyaAction == 3 && shizukaAction == 2){
+                    printf("\nXiya initiated defend and Shizuka initiated heal\n");
+                }
+
+                else if (xiyaAction == 4 && shizukaAction == 2){
+                    printf("\nXiya initiated counter and Shizuka initiated heal\n");
+                }
+
+                else if (xiyaAction == 1 && shizukaAction == 3){
+                    printf("\nXiya initiated attack and Shizuka initiated defend\n");
+                }
+
+                else if (xiyaAction == 2 && shizukaAction == 3){
                     printf("Xiya initiated heal and Shizuka initiated defend\n");
-                else if (xiyaAction == 3 && shizukaAction == 3)
-                    printf("Xiya initiated defend and Shizuka initiated defend\n");
-                else if (xiyaAction == 4 && shizukaAction == 3)
-                    printf("Xiya initiated counter and Shizuka initiated defend\n");
-                else if (xiyaAction == 1 && shizukaAction == 4)
-                    printf("Xiya initiated attack and Shizuka initiated counter\n");
-                else if (xiyaAction == 2 && shizukaAction == 4)
-                    printf("Xiya initiated heal and Shizuka initiated counter\n");
-                else if (xiyaAction == 3 && shizukaAction == 4)
-                    printf("Xiya initiated defend and Shizuka initiated counter\n");
-                else if (xiyaAction == 4 && shizukaAction == 4)
-                    printf("Xiya initiated counter and Shizuka initiated counter\n");
+                }
+
+                else if (xiyaAction == 3 && shizukaAction == 3){
+                    printf("\nXiya initiated defend and Shizuka initiated defend\n");
+                    printf("WTF\n");
+                }
+
+                else if (xiyaAction == 4 && shizukaAction == 3){
+                    printf("\nXiya initiated counter and Shizuka initiated defend\n");
+                }
+
+                else if (xiyaAction == 1 && shizukaAction == 4){
+                    printf("\nXiya initiated attack and Shizuka initiated counter\n");
+                }
+
+                else if (xiyaAction == 2 && shizukaAction == 4){
+                    printf("\nXiya initiated heal and Shizuka initiated counter\n");
+                }
+                else if (xiyaAction == 3 && shizukaAction == 4){
+                    printf("\nXiya initiated defend and Shizuka initiated counter\n");
+                }
+                else if (xiyaAction == 4 && shizukaAction == 4){
+                    printf("\nXiya initiated counter and Shizuka initiated counter\n");
+                }
+                // new here
+                else if(xiyaAction == 5 && shizukaAction == 5){                
+                }
+                else if(xiyaAction == 5 && shizukaAction == 1){
+                    printf("\nXiya initiated observe and Shizuka initiated attack\n");                  
+                }
+                else if(xiyaAction == 5 && shizukaAction == 2){
+                    printf("\nXiya initiated observe and Shizuka initiated heal\n");                  
+                }
+                else if(xiyaAction == 5 && shizukaAction == 3){
+                    printf("\nXiya initiated observe and Shizuka initiated defend\n");                  
+                }
+                else if(xiyaAction == 5 && shizukaAction == 4){
+                    printf("\nXiya initiated observe and Shizuka initiated counter\n");                  
+                }
+                else if(xiyaAction == 1 && shizukaAction == 5){
+                    printf("\nXiya initiated attack and Shizuka initiated observe\n");                  
+                }
+                else if(xiyaAction == 2 && shizukaAction == 5){
+                    printf("\nXiya initiated heal and Shizuka initiated observe\n");                  
+                }
+                else if(xiyaAction == 3 && shizukaAction == 5){
+                    printf("\nXiya initiated defend and Shizuka initiated observe\n");                  
+                }
+                else if(xiyaAction == 4 && shizukaAction == 5){
+                    printf("\nXiya initiated counter and Shizuka initiated observe\n");                  
+                }
             }
-    sleep(4);
-    printf("Phase complete. Proceeding to Preparation Phase\n");
-    shizukaflags->isExecutionPhase = 0;
-    shizukaflags->isPreparationPhase = 0;
+    sleep(2);
     shizukaflags->isXiyaPreparationPhase = 1;
     shizukaflags->isXiyaExecutionPhase = 0;
+    printf("Phase complete.\n");
+    shizukaflags->isPreparationPhase = 0;
+    shizukaflags->isExecutionPhase = 0;
     send_isprprtnphase_to_server(server_socket, shizukaflags);
     send_isexecphase_to_server(server_socket, shizukaflags);
 }
@@ -195,14 +272,20 @@ void clear_input_buffer(void) {
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
-void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phaseswitch *ps, int server_socket){
+void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phaseswitch *ps, stam *stamen, int server_socket){
     int actionsInputted = 0;
     int choosingAction = 0;
 
     while (shizukaflags->isXiyaPreparationPhase) {
         int hasInvalidActionInput = 0;
 
-        for (choosingAction; choosingAction < 4; choosingAction++) {
+        for (choosingAction; choosingAction < maxslot; choosingAction++) {
+            printf("\nCurrent Stamina: %d  \n", stamen->currentstamina);
+            printf("1.Attack\n");
+            printf("2.Heal\n");
+            printf("3.Defend\n");
+            printf("4.Counter\n");
+            printf("5.Observe\n");
             printf("Enter desired action for slot %d (enter 0 to clear): ", choosingAction + 1);
             if (scanf("%d", &gameState->Shizukaactions[choosingAction].actioninput) != 1) {
                 hasInvalidActionInput = 1;
@@ -218,14 +301,42 @@ void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phas
                 break;
             }
 
-            if (gameState->Shizukaactions[choosingAction].actioninput < 1 || gameState->Shizukaactions[choosingAction].actioninput > 4) {
+            if (gameState->Shizukaactions[choosingAction].actioninput < 1 || gameState->Shizukaactions[choosingAction].actioninput > 5) {
             hasInvalidActionInput = 1;
-            printf("Invalid action input. Please enter numbers between 1 and 4 or 0 to clear.\n");
+            printf("Invalid action input. Please enter numbers between 1 and 5 or 0 to clear.\n");
             clear_input_buffer();
             choosingAction = -1;
             break;
-}
-
+            }
+            switch(gameState->Shizukaactions[choosingAction].actioninput){
+            case 1:
+                stamen->staminausage = 10;
+                break;
+            case 2:
+                stamen->staminausage = 40;
+                break;
+            case 3:
+                stamen->staminausage = 30;
+                break;
+            case 4:
+                stamen->staminausage = 10;
+                break;
+            case 5: ;
+                stamen->staminausage = -10;
+                break;
+            default:
+                break;
+            }
+            if(stamen->currentstamina < stamen->staminausage){
+                printf("Not enough stamina for this action. Choose another.\n");
+                hasInvalidActionInput = 1;
+                clear_input_buffer();
+                choosingAction = 0;
+                break;
+            }
+            else if(stamen->currentstamina > maxstamina){
+                stamen->currentstamina = maxstamina;
+            }
             actionsInputted++;
         }
 
@@ -235,45 +346,47 @@ void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phas
             continue;
         }
 
-        if (actionsInputted == 4) {
-            printf("All slots are filled.\n");
-
-            for (int count = 0; count < 4; count++) {
+        if (actionsInputted == maxslot) {
+            for (int count = 0; count < maxslot; count++) {
                 int actionInput = gameState->Shizukaactions[count].actioninput;
-                printf("Slot %d: %d ", count + 1, actionInput);
 
                 switch (actionInput) {
                     case 1:
-                        printf("Action: Attack\n");
+                        printf("\nAction: Attack\n");
                         break;
                     case 2:
-                        printf("Action: Heal\n");
+                        printf("\nAction: Heal\n");
                         break;
                     case 3:
-                        printf("Action: Defend\n");
+                        printf("\nAction: Defend\n");
                         break;
                     case 4:
-                        printf("Action: Counter\n");
+                        printf("\nAction: Counter\n");
                         break;  
+                    case 5:
+                        printf("\nAction: Observe\n");
+                        break;
                     default:
-                        printf("Invalid action input.\n");
+                        printf("\nInvalid action input.\n");  
                         break;
                 }
             }
 
-            printf("Proceed to Execution Phase? (Enter 1 to proceed, 0 to reset): ");
+            printf("\nProceed to Execution Phase? (Enter 1 to proceed, 0 to reset): ");
             int proceedInput;
             if (scanf("%d", &proceedInput) == 1) {
                 if (proceedInput == 1) {
-                    shizukaflags->isExecutionPhase = 0;
-                    shizukaflags->isPreparationPhase = 1;
+                    stamen->currentstamina -= stamen->staminausage;
                     shizukaflags->isXiyaPreparationPhase = 0;
                     shizukaflags->isXiyaExecutionPhase = 0;
+                    shizukaflags->isPreparationPhase = 1;
+                    shizukaflags->isExecutionPhase = 0;
+                    stamen->currentstamina += staminaregen;
                     send_actions_to_server(server_socket, gameState);
                     send_isprprtnphase_to_server(server_socket, shizukaflags);
                     send_isexecphase_to_server(server_socket, shizukaflags);
-                    ps->pprtnswitch = 0;
-                    break; 
+                    clear_input_buffer();
+                    break;
                 } else if (proceedInput == 0) {
                     actionsInputted = 0;
                     choosingAction = 0;
@@ -292,13 +405,13 @@ void on_preparation_phase(ShizukaFlags *shizukaflags, GameState *gameState, Phas
 
 void print_actions(const GameState *gameState) {
     printf("Shizuka Actions: ");
-    for (int count = 0; count < 4; count++) {
+    for (int count = 0; count < maxslot; count++) {
         int actionInput = gameState->Shizukaactions[count].actioninput;
         printf("%d ", actionInput);
     }
 
     printf("\nXiya Actions: ");
-    for (int count = 0; count < 4; count++) {
+    for (int count = 0; count < maxslot; count++) {
         int actionInput = gameState->Xiyactions[count].actioninput;
         printf("%d ", actionInput);
     }
@@ -307,5 +420,6 @@ void print_actions(const GameState *gameState) {
 }
 
 void show_intro(void) {
+    centerText("Death-Minuet\n");
     printf("Mentee Shizuka is not ready...\n");
 }
