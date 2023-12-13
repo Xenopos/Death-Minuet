@@ -103,22 +103,33 @@ void centerText(const char *text) {
     int padding = (w.ws_col - strlen(text)) / 2;
     printf("%*s%s\n", padding, "", text);
 }
-int has_enough_stamina(const ShizukaPlayer *player, const Action *action) {
-    if (action->actioninput == 1 && player->currentstamina < 10) {
-        printf("Not enough stamina for Attack. Choose another action.\n");
-        return 0;
-    } else if (action->actioninput == 2 && player->currentstamina < 40) {
-        printf("Not enough stamina for Heal. Choose another action.\n");
-        return 0;
-    } else if (action->actioninput == 3 && player->currentstamina < 30) {
-        printf("Not enough stamina for Defend. Choose another action.\n");
-        return 0;
-    } else if (action->actioninput == 4 && player->currentstamina < 10) {
-        printf("Not enough stamina for Counter. Choose another action.\n");
-        return 0;
-    } else if (action->actioninput == 5 && player->currentstamina < 0) {
-        printf("Not enough stamina for Observe. Choose another action.\n");
-        return 0;
+int has_enough_stamina(ShizukaPlayer *player, Action *action) {
+    while (1) {
+        if (action->actioninput == 1 && player->currentstamina < 10) {
+            printf("Not enough stamina for Attack. Choose another action or enter 0 to change: ");
+        } else if (action->actioninput == 2 && player->currentstamina < 40) {
+            printf("Not enough stamina for Heal. Choose another action or enter 0 to change: ");
+        } else if (action->actioninput == 3 && player->currentstamina < 30) {
+            printf("Not enough stamina for Defend. Choose another action or enter 0 to change: ");
+        } else if (action->actioninput == 4 && player->currentstamina < 10) {
+            printf("Not enough stamina for Counter. Choose another action or enter 0 to change: ");
+        } else if (action->actioninput == 5 && player->currentstamina < 0) {
+            printf("Not enough stamina for Observe. Choose another action or enter 0 to change: ");
+        } else {
+            break;
+        }
+
+        int changeInput;
+        if (scanf("%d", &changeInput) == 1 && changeInput == 0) {
+            printf("Enter a new action: ");
+            if (scanf("%d", &action->actioninput) != 1) {
+                printf("Invalid input. Please enter a number.\n");
+                clear_input_buffer();
+            }
+        } else {
+            printf("Invalid input. Please enter 0 to change your action.\n");
+            clear_input_buffer();
+        }
     }
 
     return 1;
