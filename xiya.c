@@ -16,7 +16,7 @@
 #define maxstamina 100
 #define staminaregen 10
 #define TITLE "Death Minuet"
-#define serverip "172.16.7.77"
+#define serverip "172.16.7.62"
 
 typedef struct{
     int currentstamina;
