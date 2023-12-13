@@ -103,7 +103,15 @@ void centerText(const char *text) {
     int padding = (w.ws_col - strlen(text)) / 2;
     printf("%*s%s\n", padding, "", text);
 }
-
+void check_winner(const GameState *gameState) {
+    if (gameState->ShizukaPlayer.currentHealth <= 0) {
+        printf("Xiya wins! Congratulations!\n");
+        exit(EXIT_SUCCESS);
+    } else if (gameState->XiyaPlayer.currentHealth <= 0) {
+        printf("Shizuka wins! Congratulations!\n");
+        exit(EXIT_SUCCESS);
+    }
+}
 /*--------------------------------------------------*/
 //MAIN
 int main(int argc, char const *argv[]) {
@@ -442,6 +450,8 @@ void on_execution_phase(XiyaFlags *xiyaFlags, GameState *gameState, counterflag 
     printf("Phase complete. waiting for Shizuka\n");
     send_isprprtnphase_to_client(client_socket, xiyaFlags);
     send_isexecphase_to_client(client_socket, xiyaFlags);
+
+    check_winner(gameState);
 }
 
 void clear_input_buffer(void) {
