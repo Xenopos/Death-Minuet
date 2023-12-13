@@ -103,7 +103,26 @@ void centerText(const char *text) {
     int padding = (w.ws_col - strlen(text)) / 2;
     printf("%*s%s\n", padding, "", text);
 }
+int has_enough_stamina(const ShizukaPlayer *player, const Action *action) {
+    if (action->actioninput == 1 && player->currentstamina < 10) {
+        printf("Not enough stamina for Attack. Choose another action.\n");
+        return 0;
+    } else if (action->actioninput == 2 && player->currentstamina < 40) {
+        printf("Not enough stamina for Heal. Choose another action.\n");
+        return 0;
+    } else if (action->actioninput == 3 && player->currentstamina < 30) {
+        printf("Not enough stamina for Defend. Choose another action.\n");
+        return 0;
+    } else if (action->actioninput == 4 && player->currentstamina < 10) {
+        printf("Not enough stamina for Counter. Choose another action.\n");
+        return 0;
+    } else if (action->actioninput == 5 && player->currentstamina < 0) {
+        printf("Not enough stamina for Observe. Choose another action.\n");
+        return 0;
+    }
 
+    return 1;
+}
 /*--------------------------------------------------*/
 //MAIN
 int main(int argc, char const *argv[]) {
@@ -463,6 +482,12 @@ void on_preparation_phase(XiyaFlags *xiyaFlags, GameState *gameState, Phaseswitc
             printf("4.Counter\n");
             printf("5.Observe\n");
             printf("Enter desired action for slot %d (enter 0 to clear): ", choosingAction + 1);
+            
+            if(!has_enough_stamina(&gameState->ShizukaPlayer, &gameState->Shizukaactions[choosingAction])){
+                hasInvalidActionInput = 1;
+                clear_input_buffer();
+                break;
+            }
             if (scanf("%d", &gameState->Xiyactions[choosingAction].actioninput) != 1) {
                 hasInvalidActionInput = 1;
                 printf("Invalid input. Please enter a number.\n");
