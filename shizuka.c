@@ -118,7 +118,7 @@ int main(int argc, char const *argv[]) {
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(PORT);
 
-    if (inet_pton(AF_INET, "172.16.7.77", &server_address.sin_addr) <= 0) {
+    if (inet_pton(AF_INET, "172.16.7.62", &server_address.sin_addr) <= 0) {
         perror("Invalid address/ Address not supported");
         exit(EXIT_FAILURE);
     }
