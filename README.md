@@ -49,6 +49,21 @@
       </ul>
 </div>
 
+<h1>Game Mechanics</h1>
+  <h3> Phases </h3>
+    <ul>
+      <li>Each game turn is divided into two distinct phases. During the preparation phase, players strategically choose from a set of actions. Subsequently, in the execution phase, the actions selected by both players are compared to determine their outcomes. The turn-based structure allows strategic planning and action execution, adding tactical depth as players engage in the game.</li>
+    </ul>
+  <h3> Actions </h3>
+  <ul>
+    <li>The Action System defines player interactions, offering choices such as attack, defend, or other abilities. The Action Slot defines the limitation of actions that players can choose.</li>
+  </ul>
+  <h3> Health and Stamina System</h3>
+  <ul>
+    <li>The HP System quantifies the sisters' health points. Successful actions deplete opponents' HP, while strategic choices mitigate damage. This system introduces risk and reward, requiring players to balance offense and defense in the disciplined dance of the game. The Stamina System introduces the concept of stamina usage, where actions decrease stamina. Strategic choices need to be carefully considered to manage stamina effectively.</li>
+  </ul>
+</div>
+
 <div>
   <h1>Technical Specification</h1>
     <ul>
